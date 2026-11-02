@@ -1,0 +1,441 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Pump Price Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: a pump-readout hero over a reading column of three scenario chapters; each finding is a short chart plus one plain sentence. */
+:root {
+  --bg: #f2f4f3;
+  --surface: #ffffff;
+  --ink: #12202b;
+  --muted: #566672;
+  --rule: #d6dcdf;
+  --accent: #d4581a;
+  --accent-soft: #f6dccb;
+  --teal: #1d6f73;
+  --teal-soft: #cfe6e6;
+  --s1: #f2e2cf;
+  --s2: #e8b27d;
+  --s3: #d4581a;
+  --s4: #7c2d0d;
+  --display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1a22; --surface: #17252f; --ink: #e8eef1; --muted: #92a4af; --rule: #2a3b47;
+    --accent: #f08a4b; --accent-soft: #3a2619; --teal: #5cc0c4; --teal-soft: #1a3a3d;
+    --s1: #4a3b2e; --s2: #a8693a; --s3: #e8793a; --s4: #ffb98a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1a22; --surface: #17252f; --ink: #e8eef1; --muted: #92a4af; --rule: #2a3b47;
+  --accent: #f08a4b; --accent-soft: #3a2619; --teal: #5cc0c4; --teal-soft: #1a3a3d;
+  --s1: #4a3b2e; --s2: #a8693a; --s3: #e8793a; --s4: #ffb98a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 56px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.08; margin: 0; }
+p { margin: 0; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+/* hero */
+.hero { padding-block: 56px 40px; display: grid; gap: 32px; }
+.hero h1 { font-size: clamp(2.6rem, 7vw, 5rem); font-weight: 800; letter-spacing: -.02em; max-width: 14ch; }
+.hero .lede { max-width: 58ch; font-size: 1.1rem; color: var(--muted); }
+.readout { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; background: var(--ink); border-radius: 6px; overflow: hidden; }
+.readout div { background: var(--surface); padding: 16px 18px; min-width: 0; }
+.readout b { display: block; font-family: var(--mono); font-weight: 500; font-size: clamp(1.4rem, 4vw, 2.2rem); color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.readout span { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 640px) { .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* nav */
+.nav { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 12px; border-block: 1px solid var(--rule); margin-bottom: 8px; }
+.nav a { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); text-decoration: none; padding: 6px 10px; border-radius: 4px; }
+.nav a:hover, .nav a:focus-visible { background: var(--accent-soft); outline: none; }
+
+/* sections */
+section { padding-block: 48px 8px; }
+.sec-head { display: grid; gap: 10px; margin-bottom: 28px; max-width: 70ch; }
+.sec-head h2 { font-size: clamp(1.8rem, 4.5vw, 2.6rem); font-weight: 700; }
+.sec-head p { color: var(--muted); }
+.who { font-family: var(--mono); font-size: 12px; color: var(--teal); letter-spacing: .06em; }
+
+.finding { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 28px; padding-block: 28px; border-top: 1px solid var(--rule); align-items: start; }
+.finding .text { display: grid; gap: 10px; min-width: 0; }
+.finding h3 { font-size: 1.35rem; font-weight: 700; }
+.tag { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.finding .text p { color: var(--ink); max-width: 56ch; }
+.finding .text p.note { color: var(--muted); font-size: .92rem; }
+.chart { background: var(--surface); border-radius: 8px; padding: 18px 18px 14px; border: 1px solid var(--rule); min-width: 0; }
+.chart .cap { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; }
+@media (max-width: 760px) { .finding { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+
+/* bars */
+.bars { display: grid; gap: 9px; }
+.row { display: grid; grid-template-columns: minmax(70px, 118px) minmax(0, 1fr) 54px; align-items: center; gap: 10px; font-size: 13px; }
+.row .lab { color: var(--ink); overflow-wrap: anywhere; }
+.row .val { font-family: var(--mono); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.track { height: 16px; background: var(--bg); border-radius: 3px; overflow: hidden; display: flex; }
+.track i { display: block; height: 100%; }
+.fill-a { background: var(--accent); }
+.fill-t { background: var(--teal); }
+.fill-base { background: var(--teal-soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin-top: 12px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; background: var(--c, var(--accent)); vertical-align: -1px; }
+
+/* scale */
+.scale { height: 22px; border-radius: 4px; background: linear-gradient(90deg, var(--teal-soft), var(--accent)); position: relative; margin: 8px 0 4px; }
+.scale-ends { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.stat { border-left: 3px solid var(--accent); padding-left: 12px; min-width: 0; }
+.stat b { display: block; font-family: var(--mono); font-weight: 500; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+@media (max-width: 480px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+.eq { font-family: var(--mono); font-size: 13px; margin-top: 14px; padding: 10px 12px; background: var(--bg); border-radius: 4px; overflow-x: auto; white-space: nowrap; }
+
+/* stacked 100 */
+.stack { display: grid; gap: 14px; }
+.stack .name { font-size: 13px; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+.stack .name span:last-child { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.seg { display: flex; height: 26px; border-radius: 3px; overflow: hidden; }
+.seg i { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-style: normal; min-width: 0; }
+.seg .s1 { background: var(--s1); color: #3b2a1a; }
+.seg .s2 { background: var(--s2); color: #2b1707; }
+.seg .s3 { background: var(--s3); color: #fff; }
+.seg .s4 { background: var(--s4); color: #fff; }
+:root[data-theme="dark"] .seg .s3, :root[data-theme="dark"] .seg .s4 { color: #1a0d04; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg .s3, :root:not([data-theme="light"]) .seg .s4 { color: #1a0d04; } }
+:root[data-theme="dark"] .seg .s1 { color: #f1e4d6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg .s1 { color: #f1e4d6; } }
+
+/* scenario cards */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.card h3 { font-size: 1.15rem; }
+.card .role { font-family: var(--mono); font-size: 12px; color: var(--teal); }
+.card p { font-size: .95rem; color: var(--muted); }
+@media (max-width: 860px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+
+/* method */
+.method { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
+.method div { border-top: 1px solid var(--rule); padding-top: 12px; min-width: 0; }
+.method h3 { font-size: 1.05rem; margin-bottom: 4px; }
+.method p { font-size: .95rem; color: var(--muted); }
+code { font-family: var(--mono); font-size: .85em; background: var(--surface); border: 1px solid var(--rule); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .method { grid-template-columns: minmax(0, 1fr); } }
+
+/* dashboard slot */
+.slot { background: var(--surface); border: 1px dashed var(--accent); border-radius: 8px; padding: 22px; display: grid; gap: 12px; }
+.slot form { display: flex; flex-wrap: wrap; gap: 8px; }
+.slot input[type="url"] { flex: 1 1 260px; min-width: 0; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); }
+button, .btn { font: inherit; font-weight: 600; font-size: 14px; padding: 10px 16px; border-radius: 4px; border: 0; background: var(--accent); color: #fff; cursor: pointer; text-decoration: none; display: inline-block; }
+:root[data-theme="dark"] button, :root[data-theme="dark"] .btn { color: #1a0d04; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button, :root:not([data-theme="light"]) .btn { color: #1a0d04; } }
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+#dash-msg { font-size: 13px; color: var(--muted); }
+
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+@media (prefers-reduced-motion: no-preference) { .nav a { transition: background .15s; } }
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Tableau project · 2020 to 2026</p>
+  <h1>What a litre costs, and who gets taxed for it</h1>
+  <p class="lede">Weekly pump prices for diesel, LPG and petrol in 84 countries, set against tax rates, subsidy levels and national income. Nine visuals answer three questions from three people who work with fuel prices.</p>
+  <div class="readout" role="list">
+    <div role="listitem"><b>84</b><span>Countries</span></div>
+    <div role="listitem"><b>7</b><span>Regions</span></div>
+    <div role="listitem"><b>27,468</b><span>Weekly records</span></div>
+    <div role="listitem"><b>3</b><span>Fuels</span></div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Sections">
+  <a href="#readers">The three readers</a>
+  <a href="#policy">Policy</a>
+  <a href="#logistics">Logistics</a>
+  <a href="#economics">Economics</a>
+  <a href="#build">How it was built</a>
+  <a href="#dashboard">Dashboard</a>
+</nav>
+
+<section id="readers">
+  <div class="sec-head">
+    <p class="eyebrow">Who the dashboard is for</p>
+    <h2>Three readers, three questions</h2>
+  </div>
+  <div class="cards">
+    <article class="card">
+      <span class="role">Policy</span>
+      <h3>Dr. Sarah Mitchell</h3>
+      <p>Energy policy consultant. Needs to compare how countries tax and subsidise fuel, and where the gaps are.</p>
+    </article>
+    <article class="card">
+      <span class="role">Logistics</span>
+      <h3>Marcus Thompson</h3>
+      <p>Supply chain manager. Needs price trends, the cheapest and costliest markets, and where prices swing most.</p>
+    </article>
+    <article class="card">
+      <span class="role">Economics</span>
+      <h3>Prof. Elena Rodriguez</h3>
+      <p>Energy economics researcher. Needs to know whether richer countries tax differently and where subsidies sit.</p>
+    </article>
+  </div>
+</section>
+
+<section id="policy">
+  <div class="sec-head">
+    <p class="who">DR. MITCHELL · TAXATION AND SUBSIDIES</p>
+    <h2>Tax takes a bigger slice where fuel is dear</h2>
+    <p>Three visuals compare tax rates, price composition and the effect of subsidies.</p>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 1 · Filled map</span>
+      <h3>Average fuel tax runs from 14% to almost 40%</h3>
+      <p>Country tax rates sit at the two ends of a wide range. Each country keeps the same tax rate across diesel, LPG and petrol, so the fuel filter changes prices but not the map.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Average tax rate by country, %</div>
+      <div class="scale" role="img" aria-label="Scale from 13.90 percent to 39.56 percent"></div>
+      <div class="scale-ends"><span>13.90%</span><span>39.56%</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 2 · Stacked bars</span>
+      <h3>Europe and Oceania pay about three times the pump price of the Middle East</h3>
+      <p>Tax is also the largest absolute slice in those two regions, at roughly 0.85 to 0.90 USD per litre.</p>
+      <p class="note">Values read from the dashboard and rounded.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Average pump price per litre, USD</div>
+      <div class="bars" id="comp"></div>
+      <div class="legend"><span style="--c: var(--teal-soft)">Pre-tax price</span><span style="--c: var(--accent)">Tax</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 3 · Bars by subsidy level</span>
+      <h3>The higher the subsidy, the lower the price</h3>
+      <p>Countries with a Very High subsidy level pay an average of 0.13 USD per litre. Countries with a Low subsidy level pay 3.09. The pattern repeats for diesel, LPG and petrol.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Average fuel price by subsidy level, USD per litre</div>
+      <div class="bars" id="sub"></div>
+    </div>
+  </div>
+</section>
+
+<section id="logistics">
+  <div class="sec-head">
+    <p class="who">MR. THOMPSON · PRICES AND PROCUREMENT</p>
+    <h2>Prices recovered after 2020 and the Middle East is the volatile one</h2>
+    <p>Three visuals cover the trend, the market ranking and price risk by region.</p>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 4 · Line chart with forecast</span>
+      <h3>Petrol costs most, LPG least, and all three moved together</h3>
+      <p>Prices bottomed out in early 2020, climbed to a peak in 2022, dipped through 2023 and recovered. The forecast continues upward, with wide prediction bands.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Reading the trend</div>
+      <div class="stats">
+        <div class="stat"><b>2020</b><span>Trough for all three fuels</span></div>
+        <div class="stat"><b>≈2.8</b><span>Petrol peak, USD per litre, 2022</span></div>
+        <div class="stat"><b>2023</b><span>Dip before the recovery</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 5 · Ranked bars</span>
+      <h3>Hong Kong is the most expensive market in the data</h3>
+      <p>Most of the ten costliest markets are in Europe. Hong Kong and Singapore are the Asian exceptions.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Most expensive markets, average USD per litre</div>
+      <div class="bars" id="top"></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 6 · Grouped bars</span>
+      <h3>Middle East prices swing five times more than Oceania's</h3>
+      <p>Volatility is the standard deviation divided by the average price. The ranking is the same for diesel, LPG and petrol, so procurement risk depends on the region more than the fuel.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Price volatility by region, diesel</div>
+      <div class="bars" id="vol"></div>
+    </div>
+  </div>
+</section>
+
+<section id="economics">
+  <div class="sec-head">
+    <p class="who">PROF. RODRIGUEZ · INCOME, TAX AND SUBSIDY</p>
+    <h2>Rich countries tax more and charge more, and subsidies sit with the rest</h2>
+    <p>Three visuals test the link between income, tax rates, prices and subsidies.</p>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 7 · Bars by income level</span>
+      <h3>High-income countries tax at 35% and pay 3.19 USD per litre</h3>
+      <p>Low-income countries tax slightly more (22.9%) than middle-income countries (21.1%), yet pay less at the pump.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Average price per litre, USD</div>
+      <div class="bars" id="inc-price"></div>
+      <div class="cap" style="margin-top:18px">Average tax rate, %</div>
+      <div class="bars" id="inc-tax"></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 8 · Scatter plot with trend line</span>
+      <h3>Each extra point of tax goes with about 10 cents more per litre</h3>
+      <p>The relationship is statistically significant. Countries fall into two clusters, around 15% tax and around 35 to 40%, so the line mostly describes the gap between the groups. It shows association and does not show that tax causes higher prices.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Linear trend of price on tax rate, 84 countries</div>
+      <div class="stats">
+        <div class="stat"><b>0.097</b><span>USD per litre per tax point</span></div>
+        <div class="stat"><b>&lt; 0.0001</b><span>p-value</span></div>
+        <div class="stat"><b>13.8</b><span>t-value</span></div>
+      </div>
+      <div class="eq">Price = 0.0972 × Tax % − 0.561</div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="text">
+      <span class="tag">Viz 9 · 100% stacked bars</span>
+      <h3>Subsidies are concentrated in low- and middle-income countries</h3>
+      <p>88% of high-income records carry a Low subsidy. Low-income countries put about 35% of records at High or Very High, and middle-income countries about the same.</p>
+    </div>
+    <div class="chart">
+      <div class="cap">Share of records by subsidy level</div>
+      <div class="stack" id="mix"></div>
+      <div class="legend"><span style="--c: var(--s1)">Low</span><span style="--c: var(--s2)">Medium</span><span style="--c: var(--s3)">High</span><span style="--c: var(--s4)">Very High</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="build">
+  <div class="sec-head">
+    <p class="eyebrow">Method</p>
+    <h2>How it was built</h2>
+  </div>
+  <div class="method">
+    <div><h3>Data</h3><p>One CSV of weekly prices from January 2020, pivoted so diesel, LPG and petrol each have their own row. Fields cover country, region, income level, subsidy level, Brent crude, tax % and price.</p></div>
+    <div><h3>Date fix</h3><p>Dates arrived as text and were switched to a Date type in the Data Source tab, which made the monthly trend and forecast possible.</p></div>
+    <div><h3>Calculated fields</h3><p><code>Pre-Tax Price</code>, <code>Tax Amount = Price − Pre-Tax Price</code> and <code>Volatility (CV) = STDEV(Price) / AVG(Price)</code>.</p></div>
+    <div><h3>Dashboard</h3><p>Nine sheets in three rows, one per reader, with a shared Fuel Type filter and a clean set of legends.</p></div>
+  </div>
+</section>
+
+<section id="dashboard">
+  <div class="sec-head">
+    <p class="eyebrow">Interactive version</p>
+    <h2>Open the live dashboard</h2>
+    <p>Publish the workbook to Tableau Public, paste its link here and the button below opens it in a new tab.</p>
+  </div>
+  <div class="slot">
+    <form id="dash-form">
+      <input type="url" id="dash-url" placeholder="https://public.tableau.com/views/your-workbook" aria-label="Tableau Public link" required>
+      <button type="submit">Save link</button>
+    </form>
+    <p id="dash-msg">No link saved yet.</p>
+    <div id="dash-open" hidden><a class="btn" id="dash-link" href="#" target="_blank" rel="noopener noreferrer">Open dashboard</a></div>
+  </div>
+</section>
+
+<footer>
+  <span>Global fuel prices dataset · 84 countries · 2020 to 2026</span>
+  <span>Built in Tableau</span>
+</footer>
+</div>
+
+<script>
+(function () {
+  function bars(id, data, max, fmt, cls) {
+    var el = document.getElementById(id);
+    el.innerHTML = data.map(function (d) {
+      return '<div class="row"><span class="lab">' + d[0] + '</span><span class="track"><i class="' + (cls || 'fill-a') + '" style="width:' + (d[1] / max * 100).toFixed(1) + '%"></i></span><span class="val">' + fmt(d[1]) + '</span></div>';
+    }).join('');
+  }
+  var f2 = function (v) { return v.toFixed(2); };
+  var f3 = function (v) { return v.toFixed(3); };
+
+  // Viz 2: pre-tax + tax per region (read from the dashboard, rounded)
+  var comp = [['Europe', 2.50, 0.85], ['Oceania', 2.40, 0.90], ['Asia', 1.50, 0.40], ['North America', 1.45, 0.40], ['Africa', 1.10, 0.30], ['South America', 1.05, 0.20], ['Middle East', 0.85, 0.25]];
+  document.getElementById('comp').innerHTML = comp.map(function (d) {
+    var tot = d[1] + d[2];
+    return '<div class="row"><span class="lab">' + d[0] + '</span><span class="track"><i class="fill-base" style="width:' + (d[1] / 3.5 * 100).toFixed(1) + '%"></i><i class="fill-a" style="width:' + (d[2] / 3.5 * 100).toFixed(1) + '%"></i></span><span class="val">' + tot.toFixed(2) + '</span></div>';
+  }).join('');
+
+  bars('sub', [['Low', 3.094], ['Medium', 1.474], ['High', 0.630], ['Very High', 0.131]], 3.2, f3, 'fill-t');
+  bars('top', [['Hong Kong', 4.931], ['Norway', 4.256], ['Netherlands', 4.156], ['Singapore', 4.053], ['Switzerland', 3.948], ['Finland', 3.871]], 5, f3);
+  bars('vol', [['Middle East', 1.214], ['South America', 0.755], ['Asia', 0.681], ['Africa', 0.616], ['North America', 0.430], ['Europe', 0.332], ['Oceania', 0.187]], 1.3, f3, 'fill-t');
+  bars('inc-price', [['Low', 1.236], ['Middle', 1.420], ['High', 3.185]], 3.4, f3);
+  bars('inc-tax', [['Low', 22.86], ['Middle', 21.11], ['High', 34.72]], 38, f2, 'fill-t');
+
+  // Viz 9: share of records by subsidy level (High-income 'High' is the remainder)
+  var mix = [
+    ['Low income', [34.78, 30.43, 17.39, 17.39]],
+    ['Middle income', [27.59, 37.93, 24.14, 10.34]],
+    ['High income', [87.50, 0, 3.12, 9.38]]
+  ];
+  document.getElementById('mix').innerHTML = mix.map(function (m) {
+    var segs = m[1].map(function (v, i) {
+      return v > 0 ? '<i class="s' + (i + 1) + '" style="width:' + v + '%">' + (v >= 8 ? Math.round(v) + '%' : '') + '</i>' : '';
+    }).join('');
+    return '<div><div class="name"><span>' + m[0] + '</span><span>100%</span></div><div class="seg">' + segs + '</div></div>';
+  }).join('');
+
+  // Dashboard link slot
+  var KEY = 'fuel-dashboard-url';
+  var form = document.getElementById('dash-form');
+  var input = document.getElementById('dash-url');
+  var msg = document.getElementById('dash-msg');
+  var open = document.getElementById('dash-open');
+  var link = document.getElementById('dash-link');
+  function show(url) {
+    if (!url) { open.hidden = true; msg.textContent = 'No link saved yet.'; return; }
+    link.href = url; open.hidden = false; msg.textContent = 'Link saved in this browser.';
+  }
+  try { var saved = localStorage.getItem(KEY); if (saved) { input.value = saved; show(saved); } } catch (e) {}
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var v = input.value.trim();
+    if (!/^https:\/\//i.test(v)) { msg.textContent = 'Enter a link that starts with https://'; return; }
+    try { localStorage.setItem(KEY, v); } catch (e) {}
+    show(v);
+  });
+})();
+</script>
+
+</body></html>
